@@ -573,16 +573,11 @@ class _TerrainBuilderThreadedWorker {
 
     const bytesInFloat32 = 4;
     const bytesInInt32 = 4;
-    const positionsArray = new Float32Array(
-        new SharedArrayBuffer(bytesInFloat32 * positions.length));
-    const coloursArray = new Float32Array(
-        new SharedArrayBuffer(bytesInFloat32 * colours.length));
-    const normalsArray = new Float32Array(
-        new SharedArrayBuffer(bytesInFloat32 * normals.length));
-    const coordsArray = new Float32Array(
-        new SharedArrayBuffer(bytesInFloat32 * coords.length));
-    const indicesArray = new Uint32Array(
-        new SharedArrayBuffer(bytesInInt32 * indices.length));
+    const positionsArray = new Float32Array(positions.length);
+    const coloursArray = new Float32Array(colours.length);
+    const normalsArray = new Float32Array(normals.length);
+    const coordsArray = new Float32Array(coords.length);
+    const indicesArray = new Uint32Array(indices.length);
 
     positionsArray.set(positions, 0);
     coloursArray.set(colours, 0);
@@ -634,11 +629,25 @@ self.onmessage = (msg) => {
     _CHUNK.Init(msg.data.params);
 
     const rebuiltData = _CHUNK.Rebuild();
-    self.postMessage({subject: 'build_chunk_result', data: rebuiltData});
+    const transferedData=[
+      rebuiltData.positions.buffer,
+      rebuiltData.colours.buffer,
+      rebuiltData.normals.buffer,
+      rebuiltData.coords.buffer,
+      rebuiltData.indices.buffer
+    ];
+    self.postMessage({subject: 'build_chunk_result', data: rebuiltData, transfer: transferedData});
   } else if (msg.data.subject == 'rebuild_chunk') {
     _CHUNK.Init(msg.data.params);
 
     const rebuiltData = _CHUNK.QuickRebuild(msg.data.mesh);
-    self.postMessage({subject: 'quick_rebuild_chunk_result', data: rebuiltData});
+    const transferedData=[
+      rebuiltData.positions.buffer,
+      rebuiltData.colours.buffer,
+      rebuiltData.normals.buffer,
+      rebuiltData.coords.buffer,
+      rebuiltData.indices.buffer
+    ];
+    self.postMessage({subject: 'quick_rebuild_chunk_result', data: rebuiltData, transfer: transferedData});
   }
 };
